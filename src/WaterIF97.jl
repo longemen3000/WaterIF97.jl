@@ -1,12 +1,12 @@
-module MoistAir
+module WaterIF97
 
     using Unitful
     using ThermoState
     using Roots
 
-    using StaticArrays
     using ThermoState.Types
     using ThermoState.QuickStates
+    using ThermoState.StatePoints
 
     import ThermoState: pressure,temperature,mass,moles,molar_mass
     import ThermoState: mass_volume, mol_volume, total_volume
@@ -18,26 +18,20 @@ module MoistAir
     import ThermoState: mass_entropy, mol_entropy, total_entropy
     import ThermoState: mass_fraction, mol_fraction
     import ThermoState: mass_number, mol_number
+    import ThermoState: ThermoModel
+    #import ThermoState: mass_cp,mass_cv,mol_cp,mol_cv
+    #import ThermoState: sound_speed
 
-    include("types.jl")
-#=
-,WebBulbPT  => :hum_wetbulb
-,HumidityRatioPT => :hum_ratio
-,MolHumidityPT => :hum_molfrac 
-,MassHumidityPT => :hum_massfrac
-,RelativeHumidityPT => :rel_hum
-,DewPointPT => :hum_dewpoint
+    struct IF97Region{T} <: ThermoModel end
 
-=#
-    export ASHRAEMoistAir, ASHRAEDryAir, ASHRAEWaterVapor
-    export MoistAirModel
+    include("region1.jl")
+    include("region2.jl")
+    include("region3.jl")
+    include("region4.jl")
+    include("region5.jl")
+    include("industrialwater.jl")
+    include("region_id.jl")
 
-    #dry quantities
-    export dry_volume,dry_enthalpy,dry_entropy,molecular_weight
-
-    #specific humidity properties
-    export hum_wetbulb,hum_dewpoint
-    export hum_molfrac,hum_massfrac
-    export rel_hum,hum_ratio
-
+    export IndustrialWater
+    export mol_cp,mass_cp,mol_cv,mol_cp,sound_speed
 end

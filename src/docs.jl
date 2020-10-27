@@ -1,9 +1,0 @@
-function hum_dewpoint end
-function hum_massfrac end
-function hum_molfrac end
-function rel_hum end
-function hum_wetbulb end
-function hum_ratio end
-function dry_volume end
-function dry_enthalpy end
-function dry_entropy end
