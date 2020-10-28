@@ -169,12 +169,12 @@ end
 function mass_gibbs_impl(mt::SingleVT,model::IF97Region{:r3}, _ρ, _T)
     ρ = normalize_units(_ρ)
     T = normalize_units(_T)
-    ρstar = IF97_ρc      #kg/m3
+    ρstar = IF97_ρc_inv      #kg/m3
     Tstar = IF97_Tc   #K
     n = Region3_vt.n
     I = Region3_vt.I 
     J = Region3_vt.J
-    δ = ρ / ρstar
+    δ = ρ * ρstar
     τ = Tstar / T
     ϕ    =  n[1]*log(δ) + sum(n[i]*(δ^I[i])*(τ^J[i]) for i=2:40)
     ϕ_δ  =  n[1]/δ + sum(n[i]*I[i]*(δ^(I[i]-1))*(τ^J[i]) for i=2:40)
@@ -185,12 +185,12 @@ end
 function mass_helmholtz_impl(mt::SingleVT,model::IF97Region{:r3}, _ρ, _T)
     ρ = normalize_units(_ρ)
     T = normalize_units(_T)
-    ρstar = IF97_ρc      #kg/m3
+    ρstar = IF97_ρc_inv      #kg/m3
     Tstar = IF97_Tc   #K
     n = Region3_vt.n
     I = Region3_vt.I 
     J = Region3_vt.J
-    δ = ρ / ρstar
+    δ = ρ * ρstar
     τ = Tstar / T
     ϕ    =  n[1]*log(δ) + sum(n[i]*(δ^I[i])*(τ^J[i]) for i=2:40)
 
@@ -201,12 +201,12 @@ end
 function pressure_impl(mt::SingleVT,model::IF97Region{:r3}, _ρ, _T)
     ρ = normalize_units(_ρ)
     T = normalize_units(_T)
-    ρstar = IF97_ρc      #kg/m3
+    ρstar = IF97_ρc_inv      #kg/m3
     Tstar = IF97_Tc   #K
     n = Region3_vt.n
     I = Region3_vt.I 
     J = Region3_vt.J
-    δ = ρ / ρstar
+    δ = ρ * ρstar
     τ = Tstar / T
     ϕ_δ  =  n[1]/δ + sum(n[i]*I[i]*(δ^(I[i]-1))*(τ^J[i]) for i=2:40)
     res = ρ*IF97_R*T*δ*ϕ_δ/1000
@@ -216,12 +216,12 @@ end
 function mass_internal_energy_impl(mt::SingleVT,model::IF97Region{:r3}, _ρ, _T)
     ρ = normalize_units(_ρ)
     T = normalize_units(_T)
-    ρstar = IF97_ρc      #kg/m3
+    ρstar = IF97_ρc_inv      #kg/m3
     Tstar = IF97_Tc   #K
     n = Region3_vt.n
     I = Region3_vt.I 
     J = Region3_vt.J
-    δ = ρ / ρstar
+    δ = ρ * ρstar
     τ = Tstar / T
     ϕ    =  n[1]*log(δ) + sum(n[i]*(δ^I[i])*(τ^J[i]) for i=2:40)
     ϕ_τ  =  sum(n[i]*(δ^I[i])*J[i]*(τ^(J[i]-1)) for i=2:40)
@@ -232,12 +232,12 @@ end
 function mass_entropy_impl(mt::SingleVT,model::IF97Region{:r3}, _ρ, _T)
     ρ = normalize_units(_ρ)
     T = normalize_units(_T)
-    ρstar = IF97_ρc      #kg/m3
+    ρstar = IF97_ρc_inv      #kg/m3
     Tstar = IF97_Tc   #K
     n = Region3_vt.n
     I = Region3_vt.I 
     J = Region3_vt.J
-    δ = ρ / ρstar
+    δ = ρ * ρstar
     τ = Tstar / T
     ϕ    =  n[1]*log(δ) + sum(n[i]*(δ^I[i])*(τ^J[i]) for i=2:40)
     ϕ_τ  =  sum(n[i]*(δ^I[i])*J[i]*(τ^(J[i]-1)) for i=2:40)
@@ -248,12 +248,12 @@ end
 function mass_enthalpy_impl(mt::SingleVT,model::IF97Region{:r3}, _ρ, _T)
     ρ = normalize_units(_ρ)
     T = normalize_units(_T)
-    ρstar = IF97_ρc      #kg/m3
+    ρstar = IF97_ρc_inv      #kg/m3
     Tstar = IF97_Tc   #K
     n = Region3_vt.n
     I = Region3_vt.I 
     J = Region3_vt.J
-    δ = ρ / ρstar
+    δ = ρ * ρstar
     τ = Tstar / T
     ϕ    =  n[1]*log(δ) + sum(n[i]*(δ^I[i])*(τ^J[i]) for i=2:40)
     ϕ_δ  =  n[1]/δ + sum(n[i]*I[i]*(δ^(I[i]-1))*(τ^J[i]) for i=2:40)
@@ -265,12 +265,12 @@ end
 function mass_cp_impl(mt::SingleVT,model::IF97Region{:r3}, _ρ, _T)
     ρ = normalize_units(_ρ)
     T = normalize_units(_T)
-    ρstar = IF97_ρc      #kg/m3
+    ρstar = IF97_ρc_inv      #kg/m3
     Tstar = IF97_Tc   #K
     n = Region3_vt.n
     I = Region3_vt.I 
     J = Region3_vt.J
-    δ = ρ / ρstar
+    δ = ρ * ρstar
     τ = Tstar / T
     ϕ_ττ =  sum(n[i]*(δ^I[i])*J[i]*(J[i]-1)*(τ^(J[i]-2)) for i=2:40)
     ϕ_δ  =  n[1]/δ + sum(n[i]*I[i]*(δ^(I[i]-1))*(τ^J[i]) for i=2:40)
@@ -284,12 +284,12 @@ end
 function mass_cv_impl(mt::SingleVT,model::IF97Region{:r3}, _ρ, _T)
     ρ = normalize_units(_ρ)
     T = normalize_units(_T)
-    ρstar = IF97_ρc      #kg/m3
+    ρstar = IF97_ρc_inv      #kg/m3
     Tstar = IF97_Tc   #K
     n = Region3_vt.n
     I = Region3_vt.I 
     J = Region3_vt.J
-    δ = ρ / ρstar
+    δ = ρ * ρstar
     τ = Tstar / T
     ϕ_ττ =  sum(n[i]*(δ^I[i])*J[i]*(J[i]-1)*(τ^(J[i]-2)) for i=2:40)
 
@@ -300,12 +300,12 @@ end
 function sound_speed_impl(mt::SingleVT,model::IF97Region{:r3}, _ρ, _T)
     ρ = normalize_units(_ρ)
     T = normalize_units(_T)
-    ρstar = IF97_ρc      #kg/m3
+    ρstar = IF97_ρc_inv      #kg/m3
     Tstar = IF97_Tc   #K
     n = Region3_vt.n
     I = Region3_vt.I 
     J = Region3_vt.J
-    δ = ρ / ρstar
+    δ = ρ * ρstar
     τ = Tstar / T
     ϕ_ττ =  sum(n[i]*(δ^I[i])*J[i]*(J[i]-1)*(τ^(J[i]-2)) for i=2:40)
     ϕ_δ  =  n[1]/δ + sum(n[i]*I[i]*(δ^(I[i]-1))*(τ^J[i]) for i=2:40)

@@ -1,23 +1,4 @@
-const IF97_R =  0.461526
-const IF97_Tc = 647.096      #K          Critical temperature of water
-const IF97_Pc = 22.064       #Pa         Critical pressure of water
-const IF97_ρc = 322.         #kg/m3      Critical density of water
-const IF97_T3 = 273.16       #K          Triple point temperature of water
-const IF97_P3 = 611.657E-6   #MPa        Triple point pressure of water
-const IF97_Mr = 18.01528     #kg/kmol    Molecular weight of water
 
-struct IndustrialWater <: ThermoModel end
-
-temperature(::IndustrialWater,st::CriticalPoint,unit=u"K")  = convert_unit(u"K",unit,647.096)
-pressure(::IndustrialWater,st::CriticalPoint,unit=u"Pa")  = convert_unit(u"Pa",unit,2.2064e7)
-mol_volume(::IndustrialWater,st::CriticalPoint,unit=u"m^3/mol")  = convert_unit(u"m^3/mol",unit,5.594803726708074e-5)
-mol_density(::IndustrialWater,st::CriticalPoint,unit=u"mol/m^3")  = convert_unit(u"mol/m^3",unit,17873.72799560906)
-mass_density(::IndustrialWater,st::CriticalPoint,unit=u"kg/m^3")  = convert_unit(u"kg/m^3",unit,322.0)
-mass_volume(::IndustrialWater,st::CriticalPoint,unit=u"m^3/kg")  = convert_unit(u"m^3/kg",unit,0.003105590062111801)
-temperature(::IndustrialWater,st::TriplePoint,unit=u"K")  = convert_unit(u"K",unit,273.16)
-temperature(::IndustrialWater,st::NormalBoilingPoint,unit=u"K")  = convert_unit(u"K",unit,373.15)
-pressure(::IndustrialWater,st::TriplePoint,unit=u"Pa")  = convert_unit(u"Pa",unit,611.657)
-molecular_weight(::IndustrialWater) = 18.01528
 
 
 
@@ -45,6 +26,8 @@ molecular_weight(::IndustrialWater) = 18.01528
         end
      
         @eval begin
+
+            #dispatch basic mass impl to the correct region, P,T
             function $mass_op_impl(mt::SinglePT,model::IndustrialWater,p,t)
                 id = region_id(mt,model,p,t)
                 return $mass_op_impl(mt,IF97Region{id}(),p,t)
@@ -54,7 +37,7 @@ molecular_weight(::IndustrialWater) = 18.01528
             function $mass_op(model::IndustrialWater,st::ThermodynamicState,unit=$_unit)
                 return $mass_op(state_type(st),model,st,unit)
             end
-
+            # P T impl
             function $mass_op(mt::SinglePT,model::IndustrialWater,st::ThermodynamicState,unit)
                 p = pressure(FromState(),st)
                 t = temperature(FromState(),st)
@@ -62,15 +45,16 @@ molecular_weight(::IndustrialWater) = 18.01528
                 return convert_unit($_unit,unit,res)
             end
 
+            #mol op
             function $mol_op(model::IndustrialWater,st::ThermodynamicState,unit=$mol_unit)
                 prod = molar_mass(FromState(),st,u"kg/mol",molecular_weight(model))
-                res =  $mass_op(model,st)*prod
+                res =  $mass_op(state_type(st),model,st,$_unit)*prod
                 return convert_unit($mol_unit,unit,res)
             end 
         end
 
         if !(op in (:cv,:cp))
-            
+            #total ops
             @eval begin
                 function $total_op(model::IndustrialWater,st::ThermodynamicState,unit=$total_unit)
                     prod = mass(FromState(),st,u"kg",molecular_weight(model))
@@ -82,6 +66,7 @@ molecular_weight(::IndustrialWater) = 18.01528
 
     if op != :enthalpy
         @eval begin
+            #if not enthalpy, define PH impl
             function $mass_op_impl(mt::SinglePH,model::IndustrialWater,p,h)
                 id = region_id(mt,model,p,h)
                 return $mass_op_impl(mt,IF97Region{id}(),p,h)
@@ -91,6 +76,25 @@ molecular_weight(::IndustrialWater) = 18.01528
                 p = pressure(FromState(),st)
                 h = mass_enthalpy(FromState(),st)
                 res = $mass_op_impl(mt,model,p,h)
+                return convert_unit($_unit,unit,res)
+            end
+        end   
+    end
+
+    if op != :entropy
+        @eval begin
+            #if not entropy, define PS impl
+            function $mass_op_impl(mt::SinglePS,model::IndustrialWater,p,s)
+                id = region_id(mt,model,p,h)
+                t = temperature_impl(mt,IF97Region{id}(),p,s) #transform to SinglePT
+                _mt = QuickStates.pt()
+                return $mass_op_impl(_mt,model,p,t)
+            end
+
+            function $mass_op(mt::SinglePS,model::IndustrialWater,st::ThermodynamicState,unit)
+                p = pressure(FromState(),st)
+                s = mass_entropy(FromState(),st)
+                res = $mass_op_impl(mt,model,p,s)
                 return convert_unit($_unit,unit,res)
             end
         end   
@@ -148,3 +152,23 @@ for op in (:helmholtz, :gibbs, :internal_energy, :enthalpy)
 end
 
 ==#
+function mass_density(model::IndustrialWater,st::ThermodynamicState,unit=u"kg/(m^3)")
+    return mass_density(state_type(st),model,st,unit)
+end
+
+function mol_density(model::IndustrialWater,st::ThermodynamicState,unit=u"mol/(m^3)")
+    return mol_density(state_type(st),model,st,unit)
+end
+
+function mass_density(mt,model::IndustrialWater,st::ThermodynamicState,unit)
+    res = mass_volume(model,st)
+    rho = one(res)/res
+    return convert_unit(u"kg/(m^3)",unit,rho)
+end
+
+function mol_density(mt,model::IndustrialWater,st::ThermodynamicState,unit)
+    res = mol_volume(model,st)
+    rho = one(res)/res
+    return convert_unit(u"mol/(m^3)",unit,rho)
+end
+
